@@ -542,11 +542,11 @@ in {
     environment.systemPackages = [ brewLauncher ];
     system.activationScripts = {
       # We set up a new system activation step that sets up Homebrew
-      preActivation.text = lib.mkAfter ''
+      extraUserActivation.text = lib.mkAfter ''
         ${config.system.activationScripts.setup-homebrew.text}
       '';
       setup-homebrew.text = ''
-        ${setupHomebrew}
+        sudo ${setupHomebrew}
       '';
     };
   };
