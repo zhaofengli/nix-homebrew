@@ -11,7 +11,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, nix-darwin, flake-utils, ... } @ inputs: let
+  outputs = { self, nixpkgs, nix-darwin, flake-utils, brew-src, ... } @ inputs: let
     # System types to support.
     supportedSystems = [ "x86_64-darwin" "aarch64-darwin" ];
   in flake-utils.lib.eachSystem supportedSystems (system: let
@@ -26,7 +26,12 @@
     };
   }) // {
     darwinModules = {
-      nix-homebrew = ./modules;
+      nix-homebrew = { lib, ... }: {
+        imports = [
+          ./modules
+        ];
+        nix-homebrew.package = lib.mkOptionDefault brew-src.outPath;
+      };
     };
     darwinConfigurations = {
       ci = import ./ci inputs;

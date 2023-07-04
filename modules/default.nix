@@ -34,14 +34,6 @@ let
 
   tools = pkgs.callPackage ../pkgs { };
 
-  # TODO: Maybe don't provide a default at all
-  defaultBrew = pkgs.fetchFromGitHub {
-    owner = "homebrew";
-    repo = "brew";
-    rev = "eff45ef570f265e226f14ce91da72d7a6e7d516a";
-    sha256 = "sha256-4hoGm5PUYmz091Pqrii4rpfsLsE7/gjIThHVBq6Vquk=";
-  };
-
   brew = if cfg.patchBrew then patchBrew cfg.package else cfg.package;
 
   prefixType = types.submodule ({ name, ... }: {
@@ -387,7 +379,7 @@ let
     '';
 
   # Patch Homebrew to disable self-update behavior
-  patchBrew = brew: pkgs.runCommandLocal "${brew.name}-patched" {} ''
+  patchBrew = brew: pkgs.runCommandLocal "${brew.name or "brew"}-patched" {} ''
     cp -r "${brew}" "$out"
     chmod u+w "$out" "$out/Library/Homebrew/cmd"
 
@@ -418,8 +410,6 @@ in {
           The homebrew package itself.
         '';
         type = types.package;
-        default = defaultBrew;
-        defaultText = lib.literalExpression "(default Homebrew package)";
       };
       taps = lib.mkOption {
         description = lib.mdDoc ''
