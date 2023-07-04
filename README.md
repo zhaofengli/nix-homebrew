@@ -28,11 +28,15 @@ Add the following to your Flake inputs:
 }
 ```
 
+### A. New Installation
+
+If you haven't installed Homebrew before, use the following configuration:
+
 Then, Homebrew can be installed with:
 
 ```nix
 {
-  output = { self, nix-darwin, nix-homebrew, brew, homebrew-core, homebrew-cask, ... }: {
+  output = { self, nix-darwin, nix-homebrew, homebrew-core, homebrew-cask, ... }: {
     darwinConfigurations.macbook = {
       # (...)
       modules = [
@@ -68,10 +72,38 @@ Then, Homebrew can be installed with:
 Once activated, a unified `brew` launcher will be created under `/run/current-system/sw/bin` that automatically selects the correct Homebrew prefix to use based on the architecture.
 Run `arch -x86_64 brew` to install X86-64 packages through Rosetta 2.
 
-It's also possible to migrate an existing installation of Homebrew to be managed by `nix-homebrew` (experimental).
-You will receive instructions on how to perform the migration during activation.
-
 With `nix-homebrew.mutableTaps = false`, taps can be removed by deleting the corresponding attribute in `nix-homebrew.taps` and activating the new configuration.
+
+### B. Existing Homebrew Installation
+
+If you've already installed Homebrew with the official script, you can let `nix-homebrew` automatically migrate it:
+
+```nix
+{
+  output = { self, nix-darwin, nix-homebrew, ... }: {
+    darwinConfigurations.macbook = {
+      # (...)
+      modules = [
+        {
+          nix-homebrew = {
+            # Install Homebrew under the default prefix
+            enable = true;
+
+            # Apple Silicon Only: Also install Homebrew under the default Intel prefix for Rosetta 2
+            enableRosetta = true;
+
+            # User owning the Homebrew prefix
+            user = "yourname";
+
+            # Automatically migrate existing Homebrew installations
+            autoMigrate = true;
+          };
+        }
+      ];
+    };
+  };
+}
+```
 
 ## Non-Standard Prefixes
 
