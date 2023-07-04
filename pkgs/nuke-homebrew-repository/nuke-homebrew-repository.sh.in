@@ -1,0 +1,58 @@
+#!@runtimeShell@
+set -euo pipefail
+
+# Note that we do rely on GNU-ism here
+export PATH="@path@"
+
+# Homebrew keeps state (Library/Taps, bin, etc, ...) as ignored
+# files in `$HOMEBREW_REPOSITORY`. We want to uninstall Homebrew
+# while keeping all state, so we remove all files tracked by git.
+
+if [[ "$#" != "1" ]]; then
+  >&2 echo "Usage: $0 <homebrew repository>"
+  >&2 echo "This script tries to nuke all tracked files in a Homebrew repository."
+  exit 1
+fi
+
+pushd "$1" >/dev/null
+
+temp_gitconfig=$(mktemp gitconfig.XXXXXXXXXX)
+echo -e "[safe]\ndirectory = $(readlink -f $1)" >"${temp_gitconfig}"
+export GIT_CONFIG_GLOBAL="${temp_gitconfig}"
+
+finish() {
+  rm -f "${temp_gitconfig}"
+}
+trap finish EXIT
+
+if [[ ! -e ".git" ]]; then
+  >&2 echo "${PWD} is not a git repository"
+  exit 1
+fi
+
+if ! grep -E "^# Homebrew" "README.md" >/dev/null; then
+  >&2 echo "${PWD} does not looks like a Homebrew checkout"
+  exit 1
+fi
+
+# First, delete all files
+files_to_delete=()
+while read -r file; do
+  if [[ -e "$file" ]] || [[ -L "$file" ]]; then
+    files_to_delete+=("$file")
+  fi
+done < <(git ls-files)
+
+printf "%s\0" "${files_to_delete[@]}" | xargs -0 rm
+
+# Next, delete all directories
+while read -r dir; do
+  if [[ -d "$dir" ]]; then
+    rmdir -p --ignore-fail-on-non-empty "$dir"
+  fi
+done < <(git ls-files | sed 's,/[^/]*$,,' | sort | uniq)
+
+# Finally, delete .git
+rm -rf --one-file-system ".git"
+
+# vim: set et ts=2 sw=2:

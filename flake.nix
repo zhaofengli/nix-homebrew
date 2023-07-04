@@ -3,19 +3,23 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nix-darwin.url = "github:LnL7/nix-darwin";
     flake-utils.url = "github:numtide/flake-utils";
-    flake-compat = {
-      url = "github:edolstra/flake-compat";
+    brew-src = {
+      url = "github:Homebrew/brew/4.0.26";
       flake = false;
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, ... }: let
+  outputs = { self, nixpkgs, nix-darwin, flake-utils, ... } @ inputs: let
     # System types to support.
     supportedSystems = [ "x86_64-darwin" "aarch64-darwin" ];
   in flake-utils.lib.eachSystem supportedSystems (system: let
     pkgs = nixpkgs.legacyPackages.${system};
   in {
+    packages = pkgs.callPackage ./pkgs {
+      inherit inputs;
+    };
     devShell = pkgs.mkShell {
       nativeBuildInputs = with pkgs; [
       ];
@@ -23,6 +27,9 @@
   }) // {
     darwinModules = {
       nix-homebrew = ./modules;
+    };
+    darwinConfigurations = {
+      ci = import ./ci inputs;
     };
   };
 }

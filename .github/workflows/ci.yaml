@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v3
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Test nuke-homebrew-repository
+        run: |
+          nix build .#nuke-homebrew-repository.passthru.tests.test-nuke -L
+
+      - name: Install some package with Homebrew
+        run: |
+          brew install unbound
+
+      - name: Add a third-party tap imperatively
+        run: |
+          brew tap koekeishiya/formulae
+
+      - name: Set up /run for nix-darwin
+        run: |
+          printf 'run\tprivate/var/run\n' | sudo tee -a /etc/synthetic.conf
+          sudo /System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util -t || true
+
+      - name: Migrate existing Homebrew installation (imperative taps)
+        run: |
+          sudo rm /etc/bashrc
+          ./ci/activate-example.sh migrate
+
+      - name: Check that we can still use the unbound package
+        run: $(brew --prefix)/sbin/unbound -V
+
+      - name: Check that we can still use the tap that we added imperatively
+        run: brew install koekeishiya/formulae/yabai
+
+      #- name: Migrate to fully-declarative tap management
+      #  run: |
+      #    false

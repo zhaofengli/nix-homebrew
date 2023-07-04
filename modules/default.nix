@@ -32,6 +32,8 @@ let
 
   cfg = config.nix-homebrew;
 
+  tools = pkgs.callPackage ../pkgs { };
+
   # TODO: Maybe don't provide a default at all
   defaultBrew = pkgs.fetchFromGitHub {
     owner = "homebrew";
@@ -289,25 +291,34 @@ let
     HOMEBREW_CODE="$HOMEBREW_LIBRARY/Homebrew"
     if is_occupied "$HOMEBREW_CODE"; then
       # Probably an existing installation
-      error "An existing $HOMEBREW_CODE is in the way"
-      error "$HOMEBREW_PREFIX seems to contain an existing copy of Homebrew."
+      warn "An existing $HOMEBREW_CODE is in the way"
+      warn "$HOMEBREW_PREFIX seems to contain an existing copy of Homebrew."
 
       if [[ -e "$HOMEBREW_PREFIX/.git" ]]; then
         # Looks like an Apple Silicon installation
-        ohai "There are two ways proceed:"
-        ohai "1. Use the official uninstallation script to remove Homebrew (you will lose all taps and installed packages)"
-        ohai "2. Delete $HOMEBREW_CODE and clean up other git files later. The existing Homebrew code will be unused."
+        ohai "Looks like an Apple Silicon installation (Homebrew prefix is the repository)"
+        HOMEBREW_REPOSITORY="$HOMEBREW_PREFIX"
       elif [[ -e "$HOMEBREW_PREFIX/Homebrew/.git" ]]; then
         # Looks like an Intel installation
-        ohai "There are two ways to proceed:"
-        ohai "1. Use the official uninstallation script to remove Homebrew (you will lose all taps and installed packages)"
-        ohai "2. Make a backup of $HOMEBREW_LIBRARY/Taps, delete $HOMEBREW_PREFIX/Homebrew, and move the taps back"
+        ohai "Looks like an Intel installation (Homebrew repository is under the 'Homebrew' subdirectory)"
+        HOMEBREW_REPOSITORY="$HOMEBREW_PREFIX/Homebrew"
       else
         # Custom installation?
         ohai "Please uninstall Homebrew and try activating again."
+        exit 1
       fi
 
-      exit 1
+      if [[ -z "${toString cfg.autoMigrate}" ]]; then
+        ohai "There are two ways to proceed:"
+        ohai "1. Use the official uninstallation script to remove Homebrew (you will lose all taps and installed packages)"
+        ohai "2. Set nix-homebrew.autoMigrate = true; to allow nix-homebrew to migrate the installation"
+
+        ohai "During auto-migration, nix-homebrew will delete the existing installation while keeping installed packages."
+        exit 1
+      fi
+
+      ohai "Attempting to migrate Homebrew installation..."
+      ${tools.nuke-homebrew-repository} "$HOMEBREW_REPOSITORY"
     fi
 
     if [[ ! -e "$HOMEBREW_PREFIX/${nixMarker}" ]]; then
@@ -441,6 +452,16 @@ in {
         '';
         type = types.bool;
         default = true;
+      };
+      autoMigrate = lib.mkOption {
+        description = ''
+          Whether to allow nix-homebrew to automatically migrate existing Homebrew installations.
+
+          When enabled, the activation script will automatically delete
+          Homebrew repositories while keeping installed packages.
+        '';
+        type = types.bool;
+        default = false;
       };
       user = lib.mkOption {
         description = lib.mdDoc ''
