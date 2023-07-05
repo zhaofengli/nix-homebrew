@@ -22,4 +22,5 @@ let
   };
 in {
   migrate = makeProfile "migrate";
+  non-standard-prefix = makeProfile "non-standard-prefix";
 }
