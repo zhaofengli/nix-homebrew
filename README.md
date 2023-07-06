@@ -32,14 +32,13 @@ Add the following to your Flake inputs:
 
 If you haven't installed Homebrew before, use the following configuration:
 
-Then, Homebrew can be installed with:
-
 ```nix
 {
-  output = { self, nix-darwin, nix-homebrew, homebrew-core, homebrew-cask, ... }: {
+  output = { self, nixpkgs, darwin, nix-homebrew, homebrew-core, homebrew-cask, ... }: {
     darwinConfigurations.macbook = {
       # (...)
       modules = [
+        nix-homebrew.darwinModules.nix-homebrew
         {
           nix-homebrew = {
             # Install Homebrew under the default prefix
@@ -80,10 +79,11 @@ If you've already installed Homebrew with the official script, you can let `nix-
 
 ```nix
 {
-  output = { self, nix-darwin, nix-homebrew, ... }: {
+  output = { self, darwin, nix-homebrew, ... }: {
     darwinConfigurations.macbook = {
       # (...)
       modules = [
+        nix-homebrew.darwinModules.nix-homebrew
         {
           nix-homebrew = {
             # Install Homebrew under the default prefix
