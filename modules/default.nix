@@ -36,6 +36,10 @@ let
 
   brew = if cfg.patchBrew then patchBrew cfg.package else cfg.package;
 
+  # Sadly, we cannot replace coreutils since the GNU implementations
+  # behave differently.
+  runtimePath = lib.makeBinPath [ pkgs.git ];
+
   prefixType = types.submodule ({ name, ... }: {
     options = {
       enable = lib.mkOption {
@@ -191,7 +195,7 @@ let
       fi
       
       # filter the user environment
-      PATH="/usr/bin:/bin:/usr/sbin:/sbin"
+      PATH="${runtimePath}:/usr/bin:/bin:/usr/sbin:/sbin"
       
       FILTERED_ENV=()
       ENV_VAR_NAMES=(
