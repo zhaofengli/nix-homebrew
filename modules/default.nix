@@ -134,6 +134,50 @@ let
       # Copyright (c) 2009-present, Homebrew contributors
       # -----
 
+      # Load Homebrew's variable configuration files from disk.
+      export_homebrew_env_file() {
+        local env_file
+      
+        env_file="''${1}"
+        [[ -r "''${env_file}" ]] || return 0
+        while read -r line
+        do
+          # only load HOMEBREW_* lines
+          [[ "''${line}" = "HOMEBREW_"* ]] || continue
+          export "''${line?}"
+        done <"''${env_file}"
+      }
+      
+      # First, load the system-wide configuration.
+      unset SYSTEM_ENV_TAKES_PRIORITY
+      if [[ -n "''${HOMEBREW_SYSTEM_ENV_TAKES_PRIORITY-}" ]]
+      then
+        SYSTEM_ENV_TAKES_PRIORITY="1"
+      else
+        export_homebrew_env_file "/etc/homebrew/brew.env"
+      fi
+      
+      # Next, load the prefix configuration
+      export_homebrew_env_file "''${HOMEBREW_PREFIX}/etc/homebrew/brew.env"
+      
+      # Finally, load the user configuration
+      if [[ -n "''${XDG_CONFIG_HOME-}" ]]
+      then
+        HOMEBREW_USER_CONFIG_HOME="''${XDG_CONFIG_HOME}/homebrew"
+      else
+        HOMEBREW_USER_CONFIG_HOME="''${HOME}/.homebrew"
+      fi
+      
+      export_homebrew_env_file "''${HOMEBREW_USER_CONFIG_HOME}/brew.env"
+      
+      # If the system configuration takes priority, load it last.
+      if [[ -n "''${SYSTEM_ENV_TAKES_PRIORITY-}" ]]
+      then
+        export_homebrew_env_file "/etc/homebrew/brew.env"
+      fi
+
+      export HOMEBREW_USER_CONFIG_HOME
+
       # Copy and export all HOMEBREW_* variables previously mentioned in
       # manpage or used elsewhere by Homebrew.
       
