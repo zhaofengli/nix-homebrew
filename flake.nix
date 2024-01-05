@@ -6,7 +6,7 @@
     nix-darwin.url = "github:LnL7/nix-darwin";
     flake-utils.url = "github:numtide/flake-utils";
     brew-src = {
-      url = "github:Homebrew/brew/4.1.11";
+      url = "github:Homebrew/brew/4.1.22";
       flake = false;
     };
   };
@@ -23,6 +23,8 @@
     devShell = pkgs.mkShell {
       nativeBuildInputs = with pkgs; [
       ];
+
+      BREW_SRC = brew-src;
     };
   }) // {
     darwinModules = {
