@@ -6,7 +6,7 @@
     nix-darwin.url = "github:LnL7/nix-darwin";
     flake-utils.url = "github:numtide/flake-utils";
     brew-src = {
-      url = "github:Homebrew/brew/4.2.2";
+      url = "github:Homebrew/brew/4.1.13";
       flake = false;
     };
   };
