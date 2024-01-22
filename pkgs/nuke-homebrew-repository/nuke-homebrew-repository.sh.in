@@ -45,6 +45,11 @@ done < <(git ls-files)
 
 printf "%s\0" "${files_to_delete[@]}" | xargs -0 rm
 
+if [[ -e "Library/Homebrew/vendor" ]]; then
+  >&2 echo "Removing stray vendor directory"
+  rm -rf --one-file-system "Library/Homebrew/vendor"
+fi
+
 # Next, delete all directories
 while read -r dir; do
   if [[ -d "$dir" ]]; then
