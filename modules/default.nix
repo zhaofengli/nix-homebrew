@@ -285,13 +285,22 @@ let
       /bin/ln -shf "${env}" "$HOMEBREW_LIBRARY/Taps"
     '';
 
-  # Patch Homebrew to disable self-update behavior
-  patchBrew = brew: pkgs.runCommandLocal "${brew.name or "brew"}-patched" {} ''
+  patchBrew = brew: let
+    pinnedRuby = "${pkgs.ruby}/bin/ruby";
+  in pkgs.runCommandLocal "${brew.name or "brew"}-patched" {} ''
     cp -r "${brew}" "$out"
     chmod u+w "$out" "$out/Library/Homebrew/cmd"
 
+    # Disable self-update behavior
     substituteInPlace "$out/Library/Homebrew/cmd/update.sh" \
       --replace 'for DIR in "''${HOMEBREW_REPOSITORY}"' "for DIR in "
+
+    # Disable vendored Ruby
+    ruby_sh="$out/Library/Homebrew/utils/ruby.sh"
+    if [[ -e "$ruby_sh" ]] && grep "setup-ruby-path" "$ruby_sh"; then
+      chmod u+w "$ruby_sh"
+      echo -e "setup-ruby-path() { export HOMEBREW_RUBY_PATH=\"${pinnedRuby}\"; }" >>"$ruby_sh"
+    fi
   '';
 in {
   options = {
