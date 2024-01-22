@@ -22,4 +22,7 @@ cat >"${brew_tail}" <<EOF
 # nix-homebrew:
 # Run scripts/update-brew-tail.sh to update this
 EOF
-sed -e '1,/^HOMEBREW_LIBRARY=/d' "${brew_upstream}" >>"${brew_tail}"
+sed \
+	-e '1,/^HOMEBREW_LIBRARY=/d' \
+	-e 's/^PATH="/PATH="@runtimePath@:/' \
+	"${brew_upstream}" >>"${brew_tail}"

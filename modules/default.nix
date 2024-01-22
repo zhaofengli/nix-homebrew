@@ -134,6 +134,7 @@ let
     src = template;
     isExecutable = true;
 
+    inherit runtimePath;
     inherit (prefix) prefix library;
   };
 

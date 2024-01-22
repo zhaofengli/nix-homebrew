@@ -127,7 +127,7 @@ then
 fi
 
 # filter the user environment
-PATH="/usr/bin:/bin:/usr/sbin:/sbin"
+PATH="@runtimePath@:/usr/bin:/bin:/usr/sbin:/sbin"
 
 FILTERED_ENV=()
 ENV_VAR_NAMES=(
