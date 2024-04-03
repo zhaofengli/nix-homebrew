@@ -287,7 +287,7 @@ let
 
   patchBrew = brew: let
     pinnedRuby = "${pkgs.ruby}/bin/ruby";
-  in pkgs.runCommandLocal "${brew.name or "brew"}-patched" {} ''
+  in pkgs.runCommandLocal "${brew.name or "brew"}-patched" {} (''
     cp -r "${brew}" "$out"
     chmod u+w "$out" "$out/Library/Homebrew/cmd"
 
@@ -301,7 +301,12 @@ let
       chmod u+w "$ruby_sh"
       echo -e "setup-ruby-path() { export HOMEBREW_RUBY_PATH=\"${pinnedRuby}\"; }" >>"$ruby_sh"
     fi
-  '';
+  '' + lib.optionalString (brew ? version) ''
+    # Embed version number instead of checking with git
+    brew_sh="$out/Library/Homebrew/brew.sh"
+    chmod u+w "$out/Library/Homebrew" "$brew_sh"
+    sed -i -e 's/^HOMEBREW_VERSION=.*/HOMEBREW_VERSION="${brew.version}"/g' "$brew_sh"
+  '');
 in {
   options = {
     nix-homebrew = {

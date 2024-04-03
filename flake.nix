@@ -14,6 +14,9 @@
   outputs = { self, nixpkgs, nix-darwin, flake-utils, brew-src, ... } @ inputs: let
     # System types to support.
     supportedSystems = [ "x86_64-darwin" "aarch64-darwin" ];
+
+    flakeLock = builtins.fromJSON (builtins.readFile ./flake.lock);
+    brewVersion = flakeLock.nodes.brew-src.original.ref;
   in flake-utils.lib.eachSystem supportedSystems (system: let
     pkgs = nixpkgs.legacyPackages.${system};
   in {
@@ -32,7 +35,10 @@
         imports = [
           ./modules
         ];
-        nix-homebrew.package = lib.mkOptionDefault brew-src.outPath;
+        nix-homebrew.package = lib.mkOptionDefault (brew-src // {
+          name = "brew-${brewVersion}";
+          version = brewVersion;
+        });
       };
     };
     darwinConfigurations = {
