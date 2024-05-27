@@ -306,6 +306,9 @@ let
     brew_sh="$out/Library/Homebrew/brew.sh"
     chmod u+w "$out/Library/Homebrew" "$brew_sh"
     sed -i -e 's/^HOMEBREW_VERSION=.*/HOMEBREW_VERSION="${brew.version}"/g' "$brew_sh"
+
+    # 4.3.1: Clear GIT_REVISION to bypass caching mechanism
+    sed -i -e 's/^GIT_REVISION=.*/GIT_REVISION=""; HOMEBREW_VERSION="${brew.version}"/g' "$brew_sh"
   '');
 in {
   options = {
