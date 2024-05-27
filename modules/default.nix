@@ -35,6 +35,7 @@ let
   tools = pkgs.callPackage ../pkgs { };
 
   brew = if cfg.patchBrew then patchBrew cfg.package else cfg.package;
+  ruby = pkgs.ruby_3_3;
 
   # Sadly, we cannot replace coreutils since the GNU implementations
   # behave differently.
@@ -285,9 +286,7 @@ let
       /bin/ln -shf "${env}" "$HOMEBREW_LIBRARY/Taps"
     '';
 
-  patchBrew = brew: let
-    pinnedRuby = "${pkgs.ruby}/bin/ruby";
-  in pkgs.runCommandLocal "${brew.name or "brew"}-patched" {} (''
+  patchBrew = brew: pkgs.runCommandLocal "${brew.name or "brew"}-patched" {} (''
     cp -r "${brew}" "$out"
     chmod u+w "$out" "$out/Library/Homebrew/cmd"
 
@@ -299,7 +298,7 @@ let
     ruby_sh="$out/Library/Homebrew/utils/ruby.sh"
     if [[ -e "$ruby_sh" ]] && grep "setup-ruby-path" "$ruby_sh"; then
       chmod u+w "$ruby_sh"
-      echo -e "setup-ruby-path() { export HOMEBREW_RUBY_PATH=\"${pinnedRuby}\"; }" >>"$ruby_sh"
+      echo -e "setup-ruby-path() { export HOMEBREW_RUBY_PATH=\"${ruby}/bin/ruby\"; }" >>"$ruby_sh"
     fi
   '' + lib.optionalString (brew ? version) ''
     # Embed version number instead of checking with git
