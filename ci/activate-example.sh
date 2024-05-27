@@ -14,6 +14,7 @@ systemProfile=$(nix build "./${DIR}/..#darwinConfigurations.ci.${example}.system
 
 >&2 echo "Built $systemProfile"
 
+sudo rm "/etc/nix/nix.conf"
 sudo "$systemProfile/activate"
 "$systemProfile/activate-user"
 
