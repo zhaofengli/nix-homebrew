@@ -234,6 +234,7 @@ let
     "''${MKDIR[@]}" "$HOMEBREW_LIBRARY/.homebrew-is-managed-by-nix/.git"
     "''${CHOWN[@]}" "$NIX_HOMEBREW_UID:$NIX_HOMEBREW_GID" "$HOMEBREW_LIBRARY/.homebrew-is-managed-by-nix"
     "''${CHMOD[@]}" 775 "$HOMEBREW_LIBRARY/.homebrew-is-managed-by-nix/"{,.git}
+    "''${TOUCH[@]}" "$HOMEBREW_LIBRARY/.homebrew-is-managed-by-nix/.git/HEAD"
 
     # Link generated bin/brew
     BIN_BREW="$HOMEBREW_PREFIX/bin/brew"
