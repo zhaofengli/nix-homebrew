@@ -90,7 +90,7 @@ let
   # Our unified brew launcher script.
   #
   # We use `/bin/bash` (Bash 3.2 :/) instead of `${runtimeShell}`
-  # for compatibility with `arch -x86_64`. 
+  # for compatibility with `arch -x86_64`.
   brewLauncher = pkgs.writeScriptBin "brew" (''
     #!/bin/bash
     set -euo pipefail
@@ -309,6 +309,22 @@ let
 
     # 4.3.5: Clear GIT_REVISION to bypass caching mechanism
     sed -i -e 's/^GIT_REVISION=.*/GIT_REVISION=""; HOMEBREW_VERSION="${brew.version}"/g' "$brew_sh"
+  '' + lib.optionalString (cfg.bundlerGemGroups != []) ''
+    # Brew expects a home dir to actually exist and be writable
+    export HOME="$TMP/brew-home"
+    mkdir -p "$HOME"
+
+    # And expects to be able to inspect its git dir
+    # TODO: need to remove this gitdir after? The activation script changes
+    # the git directory again later, so maybe leaving it around is fine...
+    mkdir -p "$out/.git"
+    touch "$out/.git/HEAD"
+
+    # Install extra gem groups the user requested.
+    # The vendor directory must be writable for the gems to be installed.
+    chmod u+w -R "$out/Library/Homebrew/vendor/bundle"
+    "$out/bin/brew" install-bundler-gems \
+      --groups "${lib.concatStringsSep "," cfg.bundlerGemGroups}"
   '');
 in {
   options = {
@@ -436,6 +452,18 @@ in {
         '';
         type = types.bool;
         default = true;
+      };
+      bundlerGemGroups = lib.mkOption {
+        description = ''
+          Bundler gem groups to install with `brew install-bundler-gems`.
+          These may be needed for developer commands like `brew livecheck`.
+
+          See <https://github.com/Homebrew/brew/blob/master/Library/Homebrew/Gemfile>
+          for valid group names.
+        '';
+        type = types.listOf types.str;
+        default = [ ];
+        example = [ "livecheck" "style" ];
       };
     };
   };
