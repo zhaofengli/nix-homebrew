@@ -225,8 +225,10 @@ let
       initialize_prefix
     fi
 
-    # Synthetize $HOMEBREW_LIBRARY
+    # Synthesize $HOMEBREW_LIBRARY
     /bin/ln -shf "${brew}/Library/Homebrew" "$HOMEBREW_LIBRARY/Homebrew"
+    # Needed for `brew audit`, `brew style` to work:
+    /bin/ln -shf "${brew}/Library/.rubocop.yml" "$HOMEBREW_LIBRARY/.rubocop.yml"
     ${setupTaps prefix.taps}
 
     # Make a fake $HOMEBREW_REPOSITORY
@@ -235,6 +237,9 @@ let
     "''${CHOWN[@]}" "$NIX_HOMEBREW_UID:$NIX_HOMEBREW_GID" "$HOMEBREW_LIBRARY/.homebrew-is-managed-by-nix"
     "''${CHMOD[@]}" 775 "$HOMEBREW_LIBRARY/.homebrew-is-managed-by-nix/"{,.git}
     "''${TOUCH[@]}" "$HOMEBREW_LIBRARY/.homebrew-is-managed-by-nix/.git/HEAD"
+
+    # Needed for `brew style` (particularly, actionlint.yml):
+    /bin/ln -shf "${brew}/.github" "$HOMEBREW_LIBRARY/.homebrew-is-managed-by-nix/.github"
 
     # Link generated bin/brew
     BIN_BREW="$HOMEBREW_PREFIX/bin/brew"
