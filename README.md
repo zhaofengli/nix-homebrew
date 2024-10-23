@@ -131,9 +131,10 @@ In Homebrew, the repo part of all taps always have `homebrew-` prepended.
 - https://docs.brew.sh/Interesting-Taps-and-Forks
 `brew tap <user>/<repo>` makes a clone of the repository at `https://github.com/<user>/homebrew-<repo>` into `$(brew --repository)/Library/Taps`.
 
-When naming extra taps, please ensure to name the key as a unique folder starting with `homebrew-`, e.g.:
+When declaring taps, please ensure to name the key as a unique folder starting with `homebrew-`, e.g.:
 ```diff
        nix-homebrew.taps = {
 -        "mtslzr/marmaduke-chromium" = inputs.marmaduke-chromium;
 +        "mtslzr/homebrew-marmaduke-chromium" = inputs.marmaduke-chromium;
 ```
+The exact GitHub `<user>/<repo>` should almost always work.
