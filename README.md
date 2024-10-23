@@ -58,7 +58,7 @@ If you haven't installed Homebrew before, use the following configuration:
             taps = {
               "homebrew/homebrew-core" = homebrew-core;
               "homebrew/homebrew-cask" = homebrew-cask;
-               "homebrew/homebrew-bundle" = homebrew-bundle;
+              "homebrew/homebrew-bundle" = homebrew-bundle;
             };
 
             # Optional: Enable fully-declarative tap management
