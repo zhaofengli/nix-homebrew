@@ -438,6 +438,7 @@ in {
         default = true;
       };
 
+      # Shell integrations
       enableBashIntegration = lib.mkEnableOption "homebrew bash integration" // {
         default = true;
       };
