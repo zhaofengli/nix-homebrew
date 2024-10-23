@@ -43,7 +43,8 @@ If you haven't installed Homebrew before, use the following configuration:
       # (...)
       modules = [
         nix-homebrew.darwinModules.nix-homebrew
-        {
+        ({config, ...}: {
+          homebrew.taps = builtins.attrNames config.nix-homebrew.taps;
           nix-homebrew = {
             # Install Homebrew under the default prefix
             enable = true;
@@ -65,7 +66,7 @@ If you haven't installed Homebrew before, use the following configuration:
             # With mutableTaps disabled, taps can no longer be added imperatively with `brew tap`.
             mutableTaps = false;
           };
-        }
+        })
       ];
     };
   };
@@ -76,6 +77,8 @@ Once activated, a unified `brew` launcher will be created under `/run/current-sy
 Run `arch -x86_64 brew` to install X86-64 packages through Rosetta 2.
 
 With `nix-homebrew.mutableTaps = false`, taps can be removed by deleting the corresponding attribute in `nix-homebrew.taps` and activating the new configuration.
+
+Setting `homebrew.taps` to equal `nix-homebrew.taps` attribute names reduces configuration mismatches. 
 
 ### B. Existing Homebrew Installation
 
