@@ -90,7 +90,7 @@ let
   # Our unified brew launcher script.
   #
   # We use `/bin/bash` (Bash 3.2 :/) instead of `${runtimeShell}`
-  # for compatibility with `arch -x86_64`. 
+  # for compatibility with `arch -x86_64`.
   brewLauncher = pkgs.writeScriptBin "brew" (''
     #!/bin/bash
     set -euo pipefail
@@ -437,6 +437,18 @@ in {
         type = types.bool;
         default = true;
       };
+
+      enableBashIntegration = lib.mkEnableOption "homebrew bash integration" // {
+        default = true;
+      };
+
+      enableFishIntegration = lib.mkEnableOption "homebrew fish integration" // {
+        default = true;
+      };
+
+      enableZshIntegration = lib.mkEnableOption "homebrew zsh integration" // {
+        default = true;
+      };
     };
   };
 
@@ -462,6 +474,19 @@ in {
         };
       };
     };
+
+    # Shell integrations
+    programs.bash.interactiveShellInit = lib.mkIf cfg.enableBashIntegration ''
+      eval "$(brew shellenv 2>/dev/null || true)"
+    '';
+
+    programs.zsh.interactiveShellInit = lib.mkIf cfg.enableZshIntegration ''
+      eval "$(brew shellenv 2>/dev/null || true)"
+    '';
+
+    programs.fish.interactiveShellInit = lib.mkIf cfg.enableFishIntegration ''
+      brew shellenv 2>/dev/null | source || true
+    '';
 
     environment.systemPackages = [ brewLauncher ];
     system.activationScripts = {
