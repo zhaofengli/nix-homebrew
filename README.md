@@ -43,8 +43,7 @@ If you haven't installed Homebrew before, use the following configuration:
       # (...)
       modules = [
         nix-homebrew.darwinModules.nix-homebrew
-        ({config, ...}: {
-          homebrew.taps = builtins.attrNames config.nix-homebrew.taps;
+        {
           nix-homebrew = {
             # Install Homebrew under the default prefix
             enable = true;
@@ -66,6 +65,10 @@ If you haven't installed Homebrew before, use the following configuration:
             # With mutableTaps disabled, taps can no longer be added imperatively with `brew tap`.
             mutableTaps = false;
           };
+        }
+        # Optional: Align homebrew taps config with nix-homebrew
+        ({config, ...}: {
+          homebrew.taps = builtins.attrNames config.nix-homebrew.taps;
         })
       ];
     };
