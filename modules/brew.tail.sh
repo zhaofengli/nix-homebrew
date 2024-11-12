@@ -83,9 +83,12 @@ USED_BY_HOMEBREW_VARS=(
   RBENV_ROOT
   SSH_TTY
   SUDO_USER
+  TMPDIR
   TMUX
   XDG_CACHE_HOME
+  XDG_DATA_DIRS
   XDG_RUNTIME_DIR
+  ZDOTDIR
 )
 for VAR in "${USED_BY_HOMEBREW_VARS[@]}"
 do
@@ -156,6 +159,18 @@ then
     FILTERED_ENV+=("${VAR}=${!VAR}")
   done
 fi
+
+if [[ -n "${HOMEBREW_RDBG:-}" ]]
+then
+  for VAR in "${!RUBY_DEBUG_@}"
+  do
+    # Skip if variable value is empty.
+    [[ -z "${!VAR:-}" ]] && continue
+
+    FILTERED_ENV+=("${VAR}=${!VAR}")
+  done
+fi
+
 unset VAR ENV_VAR_NAMES
 
 exec /usr/bin/env -i "${FILTERED_ENV[@]}" /bin/bash -p "${HOMEBREW_LIBRARY}/Homebrew/brew.sh" "$@"
