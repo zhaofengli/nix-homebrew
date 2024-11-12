@@ -123,3 +123,19 @@ Extra prefixes may be configured:
 ```
 
 Note that with a non-standard prefix, you will no longer be able to use most bottles (prebuilt packages).
+
+## Declarative Taps
+
+In Homebrew, the repo part of all taps always have `homebrew-` prepended.
+- https://docs.brew.sh/Taps
+- https://docs.brew.sh/Interesting-Taps-and-Forks
+
+`brew tap <user>/<repo>` makes a clone of the repository at `https://github.com/<user>/homebrew-<repo>` into `$(brew --repository)/Library/Taps`.
+
+When declaring taps, please ensure to name the key as a unique folder starting with `homebrew-`, e.g.:
+```diff
+       nix-homebrew.taps = {
+-        "mtslzr/marmaduke-chromium" = inputs.marmaduke-chromium;
++        "mtslzr/homebrew-marmaduke-chromium" = inputs.marmaduke-chromium;
+```
+The exact GitHub `<user>/<repo>` should almost always work.
