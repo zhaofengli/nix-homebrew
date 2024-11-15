@@ -178,7 +178,7 @@ let
 
     if test -n "${toString cfg.enableRosetta}" && ! pgrep -q oahd; then
       warn "The Intel Homebrew prefix has been set up, but Rosetta isn't installed yet."
-      ohai 'Run ''${tty_bold}softwareupdate --install-rosetta''${tty_reset} to install it.'
+      ohai "Run ''${tty_bold}softwareupdate --install-rosetta''${tty_reset} to install it."
     fi
   '';
 
