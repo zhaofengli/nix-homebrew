@@ -1,11 +1,9 @@
 # Activates example configurations on CI
 
-{ self, nix-darwin, nixpkgs, ... }:
+{ self, pkgs, nix-darwin, ... }:
 
 let
-  system = builtins.fromJSON (builtins.readFile ./system.json);
-  pkgs = nixpkgs.legacyPackages.${system};
-  inherit (pkgs) lib;
+  inherit (pkgs) lib system;
   makeProfile = example: nix-darwin.lib.darwinSystem {
     inherit system pkgs;
     modules = [
