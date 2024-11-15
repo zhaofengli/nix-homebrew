@@ -29,6 +29,9 @@
 
       BREW_SRC = brew-src;
     };
+    ci = import ./ci (inputs // {
+      inherit pkgs;
+    });
   }) // {
     darwinModules = {
       nix-homebrew = { lib, ... }: {
@@ -40,9 +43,6 @@
           version = brewVersion;
         });
       };
-    };
-    darwinConfigurations = {
-      ci = import ./ci inputs;
     };
   };
 }

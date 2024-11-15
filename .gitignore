@@ -3,6 +3,8 @@
 
 result*
 
+/ci/*.json
+
 *.o
 *.out
 

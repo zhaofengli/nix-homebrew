@@ -9,9 +9,10 @@ if [[ "$#" != "1" ]]; then
 fi
 example="$1"
 
-nix-instantiate --eval --json -E 'builtins.currentSystem' >"${DIR}/system.json"
-systemProfile=$(nix build "./${DIR}/..#darwinConfigurations.ci.${example}.system" -L --no-link --print-out-paths)
+system="$(nix eval --raw --impure --expr 'builtins.currentSystem')"
+>&2 echo "System: ${system}"
 
+systemProfile="$(nix build "./${DIR}/..#ci.${system}.${example}.system" -L --no-link --print-out-paths)"
 >&2 echo "Built $systemProfile"
 
 sudo rm "/etc/nix/nix.conf"
