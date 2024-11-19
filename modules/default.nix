@@ -499,5 +499,11 @@ in {
         sudo ${setupHomebrew}
       '';
     };
+
+    # disable the install homebrew check
+    # see https://github.com/LnL7/nix-darwin/pull/1178 and https://github.com/zhaofengli/nix-homebrew/issues/45
+    system.checks.text = mkBefore ''
+      INSTALLING_HOMEBREW=1
+    '';
   };
 }
