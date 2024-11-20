@@ -503,6 +503,8 @@ in {
     # disable the install homebrew check
     # see https://github.com/LnL7/nix-darwin/pull/1178 and https://github.com/zhaofengli/nix-homebrew/issues/45
     system.checks.text = lib.mkIf config.homebrew.enable (lib.mkBefore ''
+      # Ignore unused variable in nix-darwin versions without it
+      # shellcheck disable=SC2034
       INSTALLING_HOMEBREW=1
     '');
   };
