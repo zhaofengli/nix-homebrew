@@ -4,35 +4,40 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nix-darwin.url = "github:LnL7/nix-darwin";
-    flake-utils.url = "github:numtide/flake-utils";
     brew-src = {
       url = "github:Homebrew/brew/4.4.5";
       flake = false;
     };
   };
 
-  outputs = { self, nixpkgs, nix-darwin, flake-utils, brew-src, ... } @ inputs: let
+  outputs = { self, nixpkgs, nix-darwin, brew-src, ... } @ inputs: let
     # System types to support.
     supportedSystems = [ "x86_64-darwin" "aarch64-darwin" ];
 
     flakeLock = builtins.fromJSON (builtins.readFile ./flake.lock);
     brewVersion = flakeLock.nodes.brew-src.original.ref;
-  in flake-utils.lib.eachSystem supportedSystems (system: let
-    pkgs = nixpkgs.legacyPackages.${system};
+
+    forAllSystems =
+      function:
+      nixpkgs.lib.genAttrs supportedSystems (
+        system: function nixpkgs.legacyPackages.${system}
+      );
   in {
-    packages = pkgs.callPackage ./pkgs {
+    packages = forAllSystems (pkgs: pkgs.callPackage ./pkgs {
       inherit inputs;
-    };
-    devShell = pkgs.mkShell {
+    });
+
+    devShell = forAllSystems (pkgs: pkgs.mkShell {
       nativeBuildInputs = with pkgs; [
       ];
 
       BREW_SRC = brew-src;
-    };
-    ci = import ./ci (inputs // {
-      inherit pkgs;
     });
-  }) // {
+
+    ci = forAllSystems (pkgs: import ./ci (inputs // {
+      inherit pkgs;
+    }));
+
     darwinModules = {
       nix-homebrew = { lib, ... }: {
         imports = [
