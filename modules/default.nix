@@ -129,7 +129,9 @@ let
     '' + lib.optionalString (prefix.taps ? "homebrew/homebrew-core") ''
       # Disable API to use pinned homebrew-core
       export HOMEBREW_NO_INSTALL_FROM_API=1
-    '' + (builtins.readFile ./brew.tail.sh));
+    '' + (lib.optionalString (cfg.extraEnv != {})
+            (lib.concatLines (lib.mapAttrsToList (name: value: "export ${name}=${lib.escapeShellArg value}") cfg.extraEnv)))
+       + (builtins.readFile ./brew.tail.sh));
   in pkgs.substituteAll {
     name = "brew";
     src = template;
