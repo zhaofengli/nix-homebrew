@@ -506,8 +506,10 @@ in {
         ${config.system.activationScripts.setup-homebrew.text}
       '';
       setup-homebrew.text = if hasSystemWideActivation then ''
+        >&2 echo "setting up Homebrew prefixes..."
         ${setupHomebrew}
       '' else ''
+        >&2 echo "setting up Homebrew prefixes (user activation)..."
         sudo ${setupHomebrew}
       '';
     };
