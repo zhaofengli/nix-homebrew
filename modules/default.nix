@@ -22,13 +22,20 @@
 # that automatically selects the correct prefix based on the architecture.
 # Use `arch -x86_64 brew` to install X86-64 packages.
 
-{ pkgs, lib, config, ... }:
+{ pkgs, lib, config, options, ... }:
 let
   inherit (lib) types;
 
   # When this file exists under $HOMEBREW_PREFIX or a specific
   # tap, it means it's managed by us.
   nixMarker = ".managed_by_nix_darwin";
+
+  # nix-darwin is migrating away from user activation in
+  # <https://github.com/LnL7/nix-darwin/pull/1341>.
+  # Before this PR, nix-darwin's homebrew activation was run as part
+  # of user activation (system.activationScripts.userScript) which is
+  # removed.
+  hasSystemWideActivation = options.system ? primaryUser;
 
   cfg = config.nix-homebrew;
 
@@ -493,11 +500,14 @@ in {
 
     environment.systemPackages = [ brewLauncher ];
     system.activationScripts = {
-      # We set up a new system activation step that sets up Homebrew
-      extraUserActivation.text = lib.mkAfter ''
+      # Set up the Homebrew prefixes before nix-darwin's homebrew
+      # activation takes place.
+      homebrew.text = lib.mkBefore ''
         ${config.system.activationScripts.setup-homebrew.text}
       '';
-      setup-homebrew.text = ''
+      setup-homebrew.text = if hasSystemWideActivation then ''
+        ${setupHomebrew}
+      '' else ''
         sudo ${setupHomebrew}
       '';
     };
