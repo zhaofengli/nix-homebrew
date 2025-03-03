@@ -1,7 +1,11 @@
-# nix-homebrew (WIP)
+# nix-homebrew
 
 `nix-homebrew` manages Homebrew installations on macOS using [nix-darwin](https://github.com/LnL7/nix-darwin).
 It pins the Homebrew version and optionally allows for declarative specification of taps.
+
+`nix-homebrew` only installs Homebrew itself and does not manage any package installed by it.
+For declarative formula/cask management, use the [`homebrew.*` options](https://daiderd.com/nix-darwin/manual/index.html#opt-homebrew.enable) in nix-darwin which work well in tandem with `nix-homebrew`.
+
 
 ## Quick Start
 

@@ -6,6 +6,23 @@
 # nix-homebrew:
 # Run scripts/update-brew-tail.sh to update this
 
+# Use HOMEBREW_BREW_WRAPPER if set.
+export HOMEBREW_ORIGINAL_BREW_FILE="${HOMEBREW_BREW_FILE}"
+if [[ -n "${HOMEBREW_BREW_WRAPPER:-}" ]]
+then
+  HOMEBREW_BREW_FILE="${HOMEBREW_BREW_WRAPPER}"
+fi
+
+# These variables are exported in this file and are not allowed to be overridden by the user.
+BIN_BREW_EXPORTED_VARS=(
+  HOMEBREW_BREW_FILE
+  HOMEBREW_PREFIX
+  HOMEBREW_REPOSITORY
+  HOMEBREW_LIBRARY
+  HOMEBREW_USER_CONFIG_HOME
+  HOMEBREW_ORIGINAL_BREW_FILE
+)
+
 # Load Homebrew's variable configuration files from disk.
 export_homebrew_env_file() {
   local env_file
@@ -16,17 +33,26 @@ export_homebrew_env_file() {
   do
     # only load HOMEBREW_* lines
     [[ "${line}" = "HOMEBREW_"* ]] || continue
+
+    # forbid overriding variables that are set in this file
+    local invalid_variable
+    for VAR in "${BIN_BREW_EXPORTED_VARS[@]}"
+    do
+      [[ "${line}" = "${VAR}"* ]] && invalid_variable="${VAR}"
+    done
+    [[ -n "${invalid_variable:-}" ]] && continue
+
     export "${line?}"
   done <"${env_file}"
 }
 
 # First, load the system-wide configuration.
+export_homebrew_env_file "/etc/homebrew/brew.env"
+
 unset SYSTEM_ENV_TAKES_PRIORITY
 if [[ -n "${HOMEBREW_SYSTEM_ENV_TAKES_PRIORITY-}" ]]
 then
   SYSTEM_ENV_TAKES_PRIORITY="1"
-else
-  export_homebrew_env_file "/etc/homebrew/brew.env"
 fi
 
 # Next, load the prefix configuration
@@ -42,7 +68,7 @@ fi
 
 export_homebrew_env_file "${HOMEBREW_USER_CONFIG_HOME}/brew.env"
 
-# If the system configuration takes priority, load it last.
+# If the system configuration takes priority, load it again to override any previous settings.
 if [[ -n "${SYSTEM_ENV_TAKES_PRIORITY-}" ]]
 then
   export_homebrew_env_file "/etc/homebrew/brew.env"
@@ -102,11 +128,10 @@ done
 
 unset VAR VAR_NEW MANPAGE_VARS USED_BY_HOMEBREW_VARS
 
-export HOMEBREW_BREW_FILE
-export HOMEBREW_PREFIX
-export HOMEBREW_REPOSITORY
-export HOMEBREW_LIBRARY
-export HOMEBREW_USER_CONFIG_HOME
+for VAR in "${BIN_BREW_EXPORTED_VARS[@]}"
+do
+  export "${VAR?}"
+done
 
 # set from user environment
 # shellcheck disable=SC2154
