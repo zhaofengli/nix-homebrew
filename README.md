@@ -26,10 +26,6 @@ Add the following to your Flake inputs:
       url = "github:homebrew/homebrew-cask";
       flake = false;
     };
-    homebrew-bundle = {
-      url = "github:homebrew/homebrew-bundle";
-      flake = false;
-    };
 
     # (...)
   };
@@ -42,7 +38,7 @@ If you haven't installed Homebrew before, use the following configuration:
 
 ```nix
 {
-  output = { self, nixpkgs, darwin, nix-homebrew, homebrew-core, homebrew-cask, homebrew-bundle, ... }: {
+  output = { self, nixpkgs, darwin, nix-homebrew, homebrew-core, homebrew-cask, ... }: {
     darwinConfigurations.macbook = {
       # (...)
       modules = [
@@ -62,7 +58,6 @@ If you haven't installed Homebrew before, use the following configuration:
             taps = {
               "homebrew/homebrew-core" = homebrew-core;
               "homebrew/homebrew-cask" = homebrew-cask;
-              "homebrew/homebrew-bundle" = homebrew-bundle;
             };
 
             # Optional: Enable fully-declarative tap management
