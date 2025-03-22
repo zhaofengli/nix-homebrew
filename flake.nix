@@ -5,7 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nix-darwin.url = "github:LnL7/nix-darwin";
     brew-src = {
-      url = "github:Homebrew/brew/4.4.23";
+      url = "github:Homebrew/brew/4.4.25";
       flake = false;
     };
   };
