@@ -34,7 +34,7 @@
       BREW_SRC = brew-src;
     });
 
-    ci = forAllSystems (pkgs: import ./ci (inputs // {
+    darwinConfigurations = forAllSystems (pkgs: import ./ci (inputs // {
       inherit pkgs;
     }));
 

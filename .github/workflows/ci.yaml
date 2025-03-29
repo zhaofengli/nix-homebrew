@@ -29,6 +29,11 @@ jobs:
           printf 'run\tprivate/var/run\n' | sudo tee -a /etc/synthetic.conf
           sudo /System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util -t || true
 
+      - name: Set up nix-homebrew CI
+        run: |
+          sudo touch /etc/nix-homebrew-ci
+          sudo mv /etc/nix/nix.conf{,.before-nix-darwin}
+
       - name: Migrate existing Homebrew installation (imperative taps)
         run: |
           sudo rm /etc/bashrc
