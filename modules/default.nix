@@ -39,7 +39,7 @@ let
 
   # Sadly, we cannot replace coreutils since the GNU implementations
   # behave differently.
-  runtimePath = lib.makeBinPath [ pkgs.git ];
+  runtimePath = lib.makeBinPath [ pkgs.gitMinimal ];
 
   prefixType = types.submodule ({ name, ... }: {
     options = {
