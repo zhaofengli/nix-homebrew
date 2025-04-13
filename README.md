@@ -15,7 +15,7 @@ Add the following to your Flake inputs:
 ```nix
 {
   inputs = {
-    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
+    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
 
     # Optional: Declarative tap management
     homebrew-core = {
