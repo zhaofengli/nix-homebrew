@@ -295,7 +295,7 @@ let
 
     # Disable self-update behavior
     substituteInPlace "$out/Library/Homebrew/cmd/update.sh" \
-      --replace 'for DIR in "''${HOMEBREW_REPOSITORY}"' "for DIR in "
+      --replace-fail 'for DIR in "''${HOMEBREW_REPOSITORY}"' "for DIR in "
 
     # Disable vendored Ruby
     ruby_sh="$out/Library/Homebrew/utils/ruby.sh"
