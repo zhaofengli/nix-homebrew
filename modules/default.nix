@@ -35,7 +35,7 @@ let
   tools = pkgs.callPackage ../pkgs { };
 
   brew = if cfg.patchBrew then patchBrew cfg.package else cfg.package;
-  ruby = pkgs.ruby_3_3;
+  ruby = pkgs.ruby_3_4;
 
   # Sadly, we cannot replace coreutils since the GNU implementations
   # behave differently.
