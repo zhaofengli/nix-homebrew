@@ -132,13 +132,16 @@ let
     '' + (lib.optionalString (cfg.extraEnv != {})
             (lib.concatLines (lib.mapAttrsToList (name: value: "export ${name}=${lib.escapeShellArg value}") cfg.extraEnv)))
        + (builtins.readFile ./brew.tail.sh));
-  in pkgs.substituteAll {
+  in pkgs.replaceVarsWith {
     name = "brew";
     src = template;
     isExecutable = true;
 
-    inherit runtimePath;
-    inherit (prefix) prefix library;
+    replacements = {
+      out = placeholder "out";
+      inherit runtimePath;
+      inherit (prefix) prefix library;
+    };
   };
 
   setupHomebrew = let
