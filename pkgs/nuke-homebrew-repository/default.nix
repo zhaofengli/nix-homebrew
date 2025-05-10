@@ -1,6 +1,6 @@
 { lib
 , pkgs
-, substituteAll
+, replaceVarsWith
 , runtimeShell
 , coreutils
 , findutils
@@ -13,13 +13,15 @@
 }:
 
 let
-  script = substituteAll {
+  script = replaceVarsWith {
     name = "nuke-homebrew-repository";
     src = ./nuke-homebrew-repository.sh.in;
     isExecutable = true;
 
-    inherit runtimeShell;
-    path = lib.makeBinPath [ coreutils findutils gnugrep gnused gitMinimal ];
+    replacements = {
+      inherit runtimeShell;
+      path = lib.makeBinPath [ coreutils findutils gnugrep gnused gitMinimal ];
+    };
   };
 
   brew-src = inputs.brew-src or (throw "The tests can only be run with flakes");
