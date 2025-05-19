@@ -15,7 +15,7 @@ system="$(nix eval --raw --impure --expr 'builtins.currentSystem')"
 systemProfile="$(nix build "./${DIR}/..#ci.${system}.${example}.system" -L --no-link --print-out-paths)"
 >&2 echo "Built $systemProfile"
 
-sudo rm "/etc/nix/nix.conf"
+sudo rm -f "/etc/nix/nix.conf"
 sudo "$systemProfile/activate"
 "$systemProfile/activate-user"
 
