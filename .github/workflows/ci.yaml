@@ -5,41 +5,36 @@ on:
   pull_request:
 
 jobs:
-  check:
-    runs-on: macos-latest
+  nix-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
-
-      - name: Test nuke-homebrew-repository
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v17
+      - id: set-matrix
+        name: Generate Nix Matrix
         run: |
-          nix build .#nuke-homebrew-repository.passthru.tests.test-nuke -L
-
-      - name: Install some package with Homebrew
-        run: |
-          brew install unbound
-
-      - name: Add a third-party tap imperatively
-        run: |
-          brew tap koekeishiya/formulae
+          set -Eeu
+          matrix="$(nix eval --json '.#githubActions.matrix')"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+  check:
+    name: ${{ matrix.name }} (${{ matrix.system }})
+    needs: nix-matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix: ${{fromJSON(needs.nix-matrix.outputs.matrix)}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v17
 
       - name: Set up /run for nix-darwin
         run: |
           printf 'run\tprivate/var/run\n' | sudo tee -a /etc/synthetic.conf
           sudo /System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util -t || true
 
-      - name: Migrate existing Homebrew installation (imperative taps)
+      - name: Run test
         run: |
-          sudo rm /etc/bashrc
-          ./ci/activate-example.sh migrate
-
-      - name: Check that we can still use the unbound package
-        run: $(brew --prefix)/sbin/unbound -V
-
-      - name: Check that we can still use the tap that we added imperatively
-        run: brew install koekeishiya/formulae/yabai
-
-      #- name: Migrate to fully-declarative tap management
-      #  run: |
-      #    false
+          export NIX_HOMEBREW_CI=1
+          ci_script=$(nix build -L '.#${{ matrix.attr }}' --print-out-paths)
+          "$ci_script"
