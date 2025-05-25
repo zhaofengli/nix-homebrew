@@ -2,42 +2,20 @@
   description = "Homebrew installation manager for nix-darwin";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nix-darwin.url = "github:LnL7/nix-darwin";
     brew-src = {
       url = "github:Homebrew/brew/4.5.2";
       flake = false;
     };
   };
 
-  outputs = { self, nixpkgs, nix-darwin, brew-src, ... } @ inputs: let
-    # System types to support.
-    supportedSystems = [ "x86_64-darwin" "aarch64-darwin" ];
-
+  outputs = { self, brew-src }: let
     flakeLock = builtins.fromJSON (builtins.readFile ./flake.lock);
     brewVersion = flakeLock.nodes.brew-src.original.ref;
 
-    forAllSystems =
-      function:
-      nixpkgs.lib.genAttrs supportedSystems (
-        system: function nixpkgs.legacyPackages.${system}
-      );
+    ci = (import ./ci/flake-compat.nix).makeCi {
+      inherit self brew-src;
+    };
   in {
-    packages = forAllSystems (pkgs: pkgs.callPackage ./pkgs {
-      inherit (inputs) brew-src;
-    });
-
-    devShell = forAllSystems (pkgs: pkgs.mkShell {
-      nativeBuildInputs = with pkgs; [
-      ];
-
-      BREW_SRC = brew-src;
-    });
-
-    ci = forAllSystems (pkgs: import ./ci (inputs // {
-      inherit pkgs;
-    }));
-
     darwinModules = {
       nix-homebrew = { lib, ... }: {
         imports = [
@@ -49,5 +27,7 @@
         });
       };
     };
+
+    inherit (ci) packages devShell ciTests githubActions;
   };
 }
