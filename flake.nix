@@ -24,7 +24,7 @@
       );
   in {
     packages = forAllSystems (pkgs: pkgs.callPackage ./pkgs {
-      inherit inputs;
+      inherit (inputs) brew-src;
     });
 
     devShell = forAllSystems (pkgs: pkgs.mkShell {

@@ -8,7 +8,7 @@
 , gnused
 , gitMinimal
 
-, inputs
+, brew-src ? null
 , runCommandLocal
 }:
 
@@ -22,9 +22,9 @@ let
     path = lib.makeBinPath [ coreutils findutils gnugrep gnused gitMinimal ];
   };
 
-  brew-src = inputs.brew-src or (throw "The tests can only be run with flakes");
-
-  test-nuke = runCommandLocal "test-nuke" {
+  test-nuke =
+    assert (lib.assertMsg (brew-src != null) "brew-src must be provided");
+  runCommandLocal "test-nuke" {
     nativeBuildInputs = [ gitMinimal ];
   } ''
     must_exist() {

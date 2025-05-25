@@ -1,6 +1,6 @@
-{ callPackage, inputs ? {} }:
+{ callPackage, brew-src ? null }:
 {
   nuke-homebrew-repository = callPackage ./nuke-homebrew-repository {
-    inherit inputs;
+    inherit brew-src;
   };
 }
