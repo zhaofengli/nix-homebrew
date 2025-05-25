@@ -30,13 +30,6 @@ let
   # tap, it means it's managed by us.
   nixMarker = ".managed_by_nix_darwin";
 
-  # nix-darwin is migrating away from user activation in
-  # <https://github.com/LnL7/nix-darwin/pull/1341>.
-  # Before this PR, nix-darwin's homebrew activation was run as part
-  # of user activation (system.activationScripts.userScript) which is
-  # removed.
-  hasSystemWideActivation = options.system ? primaryUser;
-
   cfg = config.nix-homebrew;
 
   tools = pkgs.callPackage ../pkgs { };
@@ -471,6 +464,12 @@ in {
         assertion = cfg.enableRosetta -> pkgs.stdenv.hostPlatform.isAarch64;
         message = "nix-homebrew.enableRosetta is set to true but this isn't an Apple Silicon Mac";
       }
+      {
+        # nix-darwin has migrated away from user activation in
+        # <https://github.com/LnL7/nix-darwin/pull/1341>.
+        assertion = options.system ? primaryUser;
+        message = "Please update your nix-darwin version to use system-wide activation";
+      }
     ];
 
     nix-homebrew = {
@@ -508,12 +507,9 @@ in {
       homebrew.text = lib.mkBefore ''
         ${config.system.activationScripts.setup-homebrew.text}
       '';
-      setup-homebrew.text = if hasSystemWideActivation then ''
+      setup-homebrew.text = ''
         >&2 echo "setting up Homebrew prefixes..."
         ${setupHomebrew}
-      '' else ''
-        >&2 echo "setting up Homebrew prefixes (user activation)..."
-        sudo ${setupHomebrew}
       '';
     };
 
