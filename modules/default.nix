@@ -137,6 +137,10 @@ let
     src = template;
     isExecutable = true;
 
+    # Must retain #!/bin/bash, otherwise `arch -x86_64 /usr/local/bin/brew`
+    # on Apple Silicon will not work.
+    dontPatchShebangs = true;
+
     replacements = {
       out = placeholder "out";
       inherit runtimePath;
