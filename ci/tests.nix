@@ -70,7 +70,7 @@ let
 in
 {
   migrate = makeTest (
-    { pkgs, ... }:
+    { pkgs, config, ... }:
     {
       imports = [
         (self + "/examples/migrate.nix")
@@ -95,6 +95,13 @@ in
 
         >&2 echo "Checking that we can still use the tap we added imperatively"
         brew install koekeishiya/formulae/yabai
+      '' + lib.optionalString config.nix-homebrew.enableRosetta ''
+        >&2 echo "Checking we can execute the Intel brew with arch -x86_64"
+        arch -x86_64 /usr/local/bin/brew config | grep "HOMEBREW_PREFIX: /usr/local"
+
+        >&2 echo "Checking that the unified brew launcher selects the correct prefix"
+        arch -arm64 brew config | grep "HOMEBREW_PREFIX: /opt/homebrew"
+        arch -x86_64 brew config | grep "HOMEBREW_PREFIX: /usr/local"
       '';
     }
   );
