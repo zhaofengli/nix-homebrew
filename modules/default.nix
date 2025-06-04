@@ -44,12 +44,12 @@ let
   prefixType = types.submodule ({ name, ... }: {
     options = {
       enable = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Whether to set up this Homebrew prefix.
         '';
       };
       prefix = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           The Homebrew prefix.
 
           By default, it's `/opt/homebrew` for Apple Silicon Macs and
@@ -59,7 +59,7 @@ let
         default = name;
       };
       library = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           The Homebrew library.
 
           By default, it's `/opt/homebrew/Library` for Apple Silicon Macs and
@@ -68,7 +68,7 @@ let
         type = types.str;
       };
       taps = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           A set of Nix-managed taps.
         '';
         type = types.attrsOf types.package;
@@ -323,7 +323,7 @@ in {
   options = {
     nix-homebrew = {
       enable = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Whether to install Homebrew.
         '';
         type = types.bool;
@@ -339,13 +339,13 @@ in {
         default = false;
       };
       package = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           The homebrew package itself.
         '';
         type = types.package;
       };
       taps = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           A set of Nix-managed taps.
 
           These are applied to the default prefixes.
@@ -364,7 +364,7 @@ in {
         '';
       };
       mutableTaps = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Whether to allow imperative management of taps.
 
           When enabled, taps can be managed via `brew tap` and
@@ -387,13 +387,13 @@ in {
         default = false;
       };
       user = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           The user owning the Homebrew directories.
         '';
         type = types.str;
       };
       group = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           The group owning the Homebrew directories.
         '';
         type = types.str;
@@ -412,7 +412,7 @@ in {
         type = types.attrsOf prefixType;
       };
       defaultArm64Prefix = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Key of the default Homebrew prefix for ARM64 macOS.
         '';
         internal = true;
@@ -420,7 +420,7 @@ in {
         default = "/opt/homebrew";
       };
       defaultIntelPrefix = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Key of the default Homebrew prefix for Intel macOS or Rosetta 2.
         '';
         internal = true;
@@ -428,7 +428,7 @@ in {
         default = "/usr/local";
       };
       extraEnv = lib.mkOption {
-        description = lib.mdDoc ''
+        description = ''
           Extra environment variables to set for Homebrew.
         '';
         type = types.attrsOf types.str;
