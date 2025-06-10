@@ -89,8 +89,8 @@ MANPAGE_VARS=(
 )
 for VAR in "${MANPAGE_VARS[@]}"
 do
-  # Skip if variable value is empty.
-  [[ -z "${!VAR:-}" ]] && continue
+  # Skip if variable value is empty or set to 0.
+  [[ -z "${!VAR:-}" || "${!VAR:-}" = "0" ]] && continue
 
   VAR_NEW="HOMEBREW_${VAR}"
   # Skip if existing HOMEBREW_* variable is set.
