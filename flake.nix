@@ -16,7 +16,7 @@
       inherit self brew-src;
     };
   in {
-    darwinModules = {
+    darwinModules = rec {
       nix-homebrew = { lib, ... }: {
         imports = [
           ./modules
@@ -26,6 +26,8 @@
           version = brewVersion;
         });
       };
+
+      default = nix-homebrew;
     };
 
     inherit (ci) packages devShell ciTests githubActions;
