@@ -6,13 +6,6 @@
 # nix-homebrew:
 # Run scripts/update-brew-tail.sh to update this
 
-# Use HOMEBREW_BREW_WRAPPER if set.
-export HOMEBREW_ORIGINAL_BREW_FILE="${HOMEBREW_BREW_FILE}"
-if [[ -n "${HOMEBREW_BREW_WRAPPER:-}" ]]
-then
-  HOMEBREW_BREW_FILE="${HOMEBREW_BREW_WRAPPER}"
-fi
-
 # These variables are exported in this file and are not allowed to be overridden by the user.
 BIN_BREW_EXPORTED_VARS=(
   HOMEBREW_BREW_FILE
@@ -31,8 +24,8 @@ export_homebrew_env_file() {
   [[ -r "${env_file}" ]] || return 0
   while read -r line
   do
-    # only load HOMEBREW_* lines
-    [[ "${line}" = "HOMEBREW_"* ]] || continue
+    # only load variables defined in env_config.rb
+    [[ "${line}" =~ ^(HOMEBREW_|SUDO_ASKPASS=|(all|no|ftp|https?)_proxy=) ]] || continue
 
     # forbid overriding variables that are set in this file
     local invalid_variable
@@ -45,6 +38,9 @@ export_homebrew_env_file() {
     export "${line?}"
   done <"${env_file}"
 }
+
+# We only want to be able to set this in `brew.env` files.
+unset HOMEBREW_DISABLE_NO_FORCE_BREW_WRAPPER
 
 # First, load the system-wide configuration.
 export_homebrew_env_file "/etc/homebrew/brew.env"
@@ -72,6 +68,13 @@ export_homebrew_env_file "${HOMEBREW_USER_CONFIG_HOME}/brew.env"
 if [[ -n "${SYSTEM_ENV_TAKES_PRIORITY-}" ]]
 then
   export_homebrew_env_file "/etc/homebrew/brew.env"
+fi
+
+# Use HOMEBREW_FORCE_BREW_WRAPPER if set.
+export HOMEBREW_ORIGINAL_BREW_FILE="${HOMEBREW_BREW_FILE}"
+if [[ -n "${HOMEBREW_FORCE_BREW_WRAPPER:-}" ]]
+then
+  HOMEBREW_BREW_FILE="${HOMEBREW_FORCE_BREW_WRAPPER}"
 fi
 
 # Copy and export all HOMEBREW_* variables previously mentioned in
