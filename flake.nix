@@ -3,7 +3,7 @@
 
   inputs = {
     brew-src = {
-      url = "github:Homebrew/brew/4.6.7";
+      url = "github:Homebrew/brew/4.6.12";
       flake = false;
     };
   };
