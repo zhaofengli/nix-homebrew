@@ -496,11 +496,11 @@ in {
       eval "$(brew shellenv 2>/dev/null || true)"
     '';
 
-    programs.zsh.interactiveShellInit = lib.mkIf cfg.enableZshIntegration ''
+    programs.zsh.shellInit = lib.mkIf cfg.enableZshIntegration ''
       eval "$(brew shellenv 2>/dev/null || true)"
     '';
 
-    programs.fish.interactiveShellInit = lib.mkIf cfg.enableFishIntegration ''
+    programs.fish.shellInit = lib.mkIf cfg.enableFishIntegration ''
       brew shellenv 2>/dev/null | source || true
     '';
 
