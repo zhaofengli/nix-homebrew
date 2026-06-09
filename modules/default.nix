@@ -268,24 +268,31 @@ let
         error "$tty_underline${namespaceDir}$tty_reset is in the way and needs to be moved out for $tty_underline${path}$tty_reset"
         exit 1
       fi
-      if is_occupied "${tapDir}"; then
+      if [[ -L "${tapDir}" ]]; then
+        rm "${tapDir}"
+      elif [[ -d "${tapDir}" ]]; then
+        :
+        # directory
+      elif is_occupied "${tapDir}"; then
         error "An existing $tty_underline${tapDir}$tty_reset is in the way"
         exit 1
       fi
       "''${MKDIR[@]}" "${namespaceDir}"
       "''${CHOWN[@]}" "$NIX_HOMEBREW_UID:$NIX_HOMEBREW_GID" "${namespaceDir}"
       "''${CHMOD[@]}" "ug=rwx" "${namespaceDir}"
-      /bin/ln -shf "${target}" "${tapDir}"
+      /usr/bin/rsync -rL --delete "${target}/" "${tapDir}"
     '') (builtins.attrNames taps)
 
     # Fully declarative taps
     else let
-      env = pkgs.runCommandLocal "taps-env" {} (lib.concatMapStrings (path: let
+      env = pkgs.runCommandLocal "taps-env" { } (''
+        mkdir -p "$out"
+      '' + lib.concatMapStrings (path: let
         namespace = builtins.head (lib.splitString "/" path);
         target = taps.${path};
       in ''
         mkdir -p "$out/${namespace}"
-        ln -s "${target}" "$out/${path}"
+        cp -RH "${target}" "$out/${path}"
       '') (builtins.attrNames taps));
     in ''
       if is_occupied "$HOMEBREW_LIBRARY/Taps"; then

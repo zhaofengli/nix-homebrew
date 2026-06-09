@@ -2,10 +2,10 @@
 {
   inputs = {
     nixpkgs_unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs_25_11.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs_26_05.url = "github:NixOS/nixpkgs/nixos-26.05";
 
     nix-darwin_unstable.url = "github:nix-darwin/nix-darwin";
-    nix-darwin_25_11.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
+    nix-darwin_26_05.url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
 
     nix-github-actions = {
       url = "github:nix-community/nix-github-actions";
@@ -31,9 +31,9 @@
           nixpkgs = inputs.nixpkgs_unstable;
           nix-darwin = inputs.nix-darwin_unstable;
         };
-        "25.11" = {
-          nixpkgs = inputs.nixpkgs_25_11;
-          nix-darwin = inputs.nix-darwin_25_11;
+        "26.05" = {
+          nixpkgs = inputs.nixpkgs_26_05;
+          nix-darwin = inputs.nix-darwin_26_05;
         };
       };
 
