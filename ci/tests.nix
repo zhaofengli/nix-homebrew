@@ -67,6 +67,67 @@ let
         )
       ];
     };
+
+  makeTapValidationTest =
+    module:
+    makeTest (
+      { pkgs, config, ... }:
+      let
+        prefixName =
+          if pkgs.stdenv.hostPlatform.isAarch64 then
+            config.nix-homebrew.defaultArm64Prefix
+          else
+            config.nix-homebrew.defaultIntelPrefix;
+        library = config.nix-homebrew.prefixes.${prefixName}.library;
+        fakeCaskTap = pkgs.runCommandLocal "homebrew-cask-test-tap" { } ''
+          mkdir -p "$out/Casks/u"
+          touch "$out/Casks/u/ungoogled-chromium.rb"
+        '';
+      in
+      {
+        imports = [
+          module
+        ];
+
+        _module.args.library = library;
+
+        nix-homebrew = {
+          enable = true;
+          autoMigrate = true;
+          taps = {
+            "homebrew/homebrew-cask" = fakeCaskTap;
+          };
+        };
+
+        ci.preScript = ''
+          >&2 echo "Removing runner Homebrew taps before declarative tap validation"
+          if [[ -e "${library}/Taps" || -L "${library}/Taps" ]]; then
+            sudo rm -rf "${library}/Taps"
+          fi
+        '';
+
+        ci.postScript = ''
+          >&2 echo "Checking declarative cask tap realpaths"
+          tap_root="${library}/Taps"
+          cask_path="$tap_root/homebrew/homebrew-cask/Casks/u/ungoogled-chromium.rb"
+
+          test -f "$cask_path"
+
+          tap_root_real="$(${pkgs.coreutils}/bin/realpath "$tap_root")"
+          cask_real="$(${pkgs.coreutils}/bin/realpath "$cask_path")"
+
+          case "$cask_real" in
+            "$tap_root_real"/*) ;;
+            *)
+              >&2 echo "Expected cask realpath to stay under managed Taps root"
+              >&2 echo "Taps realpath: $tap_root_real"
+              >&2 echo "Cask realpath: $cask_real"
+              exit 1
+              ;;
+          esac
+        '';
+      }
+    );
 in
 {
   migrate = makeTest (
@@ -89,19 +150,37 @@ in
       ci.postScript = ''
         >&2 echo "Checking brew"
         which brew
-      '' + lib.optionalString pkgs.stdenv.hostPlatform.isAarch64 ''
+      ''
+      + lib.optionalString pkgs.stdenv.hostPlatform.isAarch64 ''
         >&2 echo "Checking that we can still use the unbound package"
         $(brew --prefix)/sbin/unbound -V
 
         >&2 echo "Checking that we can still use the tap we added imperatively"
         brew install koekeishiya/formulae/yabai
-      '' + lib.optionalString config.nix-homebrew.enableRosetta ''
+      ''
+      + lib.optionalString config.nix-homebrew.enableRosetta ''
         >&2 echo "Checking we can execute the Intel brew with arch -x86_64"
         arch -x86_64 /usr/local/bin/brew config | grep "HOMEBREW_PREFIX: /usr/local"
 
         >&2 echo "Checking that the unified brew launcher selects the correct prefix"
         arch -arm64 brew config | grep "HOMEBREW_PREFIX: /opt/homebrew"
         arch -x86_64 brew config | grep "HOMEBREW_PREFIX: /usr/local"
+      '';
+    }
+  );
+
+  tap-validation-mutable = makeTapValidationTest { };
+
+  tap-validation-declarative = makeTapValidationTest (
+    { library, ... }:
+    {
+      nix-homebrew.mutableTaps = false;
+
+      ci.preScript = ''
+        >&2 echo "Removing runner Homebrew taps before declarative tap validation"
+        if [[ -e "${library}/Taps" || -L "${library}/Taps" ]]; then
+          sudo rm -rf "${library}/Taps"
+        fi
       '';
     }
   );
