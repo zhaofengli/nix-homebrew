@@ -30,7 +30,7 @@ if [[ ! -e ".git" ]]; then
   exit 1
 fi
 
-if ! grep -E "^# Homebrew" "README.md" >/dev/null; then
+if ! grep -E "^#.*Homebrew" "README.md" >/dev/null; then
   >&2 echo "${PWD} does not looks like a Homebrew checkout"
   exit 1
 fi

@@ -112,7 +112,7 @@
             pkgs:
             pkgs.mkShell {
               nativeBuildInputs = with pkgs; [
-                nixfmt-rfc-style
+                nixfmt
               ];
 
               BREW_SRC = brew-src;
