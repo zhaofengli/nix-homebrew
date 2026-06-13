@@ -252,6 +252,19 @@ let
       exit 1
     fi
     /bin/ln -shf "${makeBinBrew prefix}" "$BIN_BREW"
+
+    ${setupTrust}
+  '';
+
+  setupTrust = let
+    trustEntries = flag: entries: lib.concatMapStrings (entry: ''
+      /usr/bin/sudo -n -u ${lib.escapeShellArg cfg.user} -H "$BIN_BREW" trust ${flag} ${lib.escapeShellArg entry} >/dev/null
+    '') entries;
+  in ''
+    ${trustEntries "--tap" cfg.trust.taps}
+    ${trustEntries "--formula" cfg.trust.formulae}
+    ${trustEntries "--cask" cfg.trust.casks}
+    ${trustEntries "--command" cfg.trust.commands}
   '';
 
   setupTaps = taps:
@@ -389,6 +402,68 @@ in {
         '';
         type = types.bool;
         default = true;
+      };
+      trust = lib.mkOption {
+        description = ''
+          Tap trust entries to be added during activation.
+
+          Note: The trust entries are _not_ removed if you remove them from
+          those lists! Use the `brew untrust` command to remove a trust entry.
+
+          Refer to upstream documentations for more information:
+          <https://docs.brew.sh/Tap-Trust>
+        '';
+        type = types.submodule {
+          options = {
+            taps = lib.mkOption {
+              description = ''
+                Taps to trust in their entirety.
+
+                This should be used with caution. To quote upstream documentation:
+
+                > Trust a whole tap only when you are comfortable with all current and
+                > future formulae, casks and external commands from that tap being loaded
+                > by Homebrew.
+              '';
+              type = types.listOf types.str;
+              default = [];
+              example = [
+                "user/repo"
+              ];
+            };
+            formulae = lib.mkOption {
+              description = ''
+                Fully-qualified formulae to trust.
+              '';
+              type = types.listOf types.str;
+              default = [];
+              example = [
+                "user/repo/formula"
+              ];
+            };
+            casks = lib.mkOption {
+              description = ''
+                Fully-qualified casks to trust.
+              '';
+              type = types.listOf types.str;
+              default = [];
+              example = [
+                "user/repo/cask"
+              ];
+            };
+            commands = lib.mkOption {
+              description = ''
+                Fully-qualified external commands to trust.
+              '';
+              type = types.listOf types.str;
+              default = [];
+              example = [
+                "user/repo/command"
+              ];
+            };
+          };
+        };
+        default = {};
       };
       autoMigrate = lib.mkOption {
         description = ''

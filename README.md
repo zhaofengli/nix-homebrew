@@ -64,6 +64,17 @@ If you haven't installed Homebrew before, use the following configuration:
             #
             # With mutableTaps disabled, taps can no longer be added imperatively with `brew tap`.
             mutableTaps = false;
+
+            # Optional: Declarative Homebrew tap trust entries.
+            #
+            # Note: The trust entries are _not_ removed if you remove them from those lists!
+            # Use the `brew untrust` command to remove a trust entry.
+            trust = {
+              formulae = [ ];
+              casks = [ ];
+              commands = [ ];
+              taps = [ ];
+            };
           };
         }
         # Optional: Align homebrew taps config with nix-homebrew
@@ -82,6 +93,25 @@ Run `arch -x86_64 brew` to install X86-64 packages through Rosetta 2.
 With `nix-homebrew.mutableTaps = false`, taps can be removed by deleting the corresponding attribute in `nix-homebrew.taps` and activating the new configuration.
 
 Setting `homebrew.taps` to equal `nix-homebrew.taps` attribute names reduces configuration mismatches. 
+
+For non-official taps, Homebrew requires [explicit trust](https://docs.brew.sh/Tap-Trust).
+You may use imperative `brew trust`/`brew untrust` commands, or configure `nix-homebrew` to add trust entries during activation:
+
+```nix
+nix-homebrew.trust = {
+  formulae = [ "user/repo/formula" ];
+  casks = [ "user/repo/cask" ];
+  commands = [ "user/repo/command" ];
+
+  # To quote upstream documentation:
+  # > Trust a whole tap only when you are comfortable with all current and
+  # > future formulae, casks and external commands from that tap being loaded
+  # > by Homebrew.
+  taps = [ "user/repo" ];
+};
+```
+Note that when you remove items from those lists, the corresponding trust entries are _not_ removed automatically.
+Use the `brew untrust` command to remove a trust entry.
 
 ### B. Existing Homebrew Installation
 

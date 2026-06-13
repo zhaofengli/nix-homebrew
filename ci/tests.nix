@@ -83,6 +83,12 @@ let
           mkdir -p "$out/Casks/u"
           touch "$out/Casks/u/ungoogled-chromium.rb"
         '';
+        fakeThirdPartyTap = pkgs.runCommandLocal "thirdparty-test-tap" { } ''
+          mkdir -p "$out/Formula" "$out/Casks" "$out/cmd"
+          touch "$out/Formula/foo.rb"
+          touch "$out/Casks/test-cask.rb"
+          touch "$out/cmd/brew-test-command.rb"
+        '';
       in
       {
         imports = [
@@ -96,6 +102,12 @@ let
           autoMigrate = true;
           taps = {
             "homebrew/homebrew-cask" = fakeCaskTap;
+            "thirdparty/homebrew-testtap" = fakeThirdPartyTap;
+          };
+          trust = {
+            formulae = [ "thirdparty/testtap/foo" ];
+            casks = [ "thirdparty/testtap/test-cask" ];
+            commands = [ "thirdparty/testtap/test-command" ];
           };
         };
 
@@ -112,6 +124,15 @@ let
           cask_path="$tap_root/homebrew/homebrew-cask/Casks/u/ungoogled-chromium.rb"
 
           test -f "$cask_path"
+
+          >&2 echo "Checking declarative Homebrew trust entries"
+          brew trust --json=v1 --formula | grep '"thirdparty/testtap/foo"'
+          brew trust --json=v1 --cask | grep '"thirdparty/testtap/test-cask"'
+          brew trust --json=v1 --command | grep '"thirdparty/testtap/test-command"'
+          if brew trust --json=v1 --tap | grep '"thirdparty/testtap"'; then
+            >&2 echo "Expected thirdparty/testtap not to be trusted as a whole tap"
+            exit 1
+          fi
 
           tap_root_real="$(${pkgs.coreutils}/bin/realpath "$tap_root")"
           cask_real="$(${pkgs.coreutils}/bin/realpath "$cask_path")"
