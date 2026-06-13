@@ -1,0 +1,81 @@
+version: 2
+
+updates:
+  # User-facing flake.
+  # Keep Homebrew as fresh as possible while separating higher-risk major bumps.
+  - package-ecosystem: "nix"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "05:10"
+      timezone: "UTC"
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: "nix"
+      include: "scope"
+    allow:
+      - dependency-name: "brew-src"
+    groups:
+      brew-src-major:
+        patterns:
+          - "brew-src"
+        update-types:
+          - "major"
+      brew-src-minor-patch:
+        patterns:
+          - "brew-src"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # CI/dev-only flake.
+  # Keep these grouped by purpose instead of assuming SemVer for branch/commit inputs.
+  - package-ecosystem: "nix"
+    directory: "/ci"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:20"
+      timezone: "UTC"
+    open-pull-requests-limit: 1
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      ci-flake-inputs:
+        patterns:
+          - "*"
+
+  # GitHub Actions used by .github/workflows/*.y[a]ml.
+  # Keep SemVer major updates separate from minor/patch updates.
+  # Date-tagged or otherwise non-SemVer actions are grouped separately.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:30"
+      timezone: "UTC"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      github-actions-major:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "samueldr/lix-gha-installer-action"
+        update-types:
+          - "major"
+      github-actions-minor-patch:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "samueldr/lix-gha-installer-action"
+        update-types:
+          - "minor"
+          - "patch"
+      github-actions-non-semver:
+        patterns:
+          - "samueldr/lix-gha-installer-action"

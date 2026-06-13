@@ -10,7 +10,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.3.1
       - uses: samueldr/lix-gha-installer-action@v2025-10-27
       - id: set-matrix
         name: Generate Nix Matrix
@@ -25,7 +25,7 @@ jobs:
     strategy:
       matrix: ${{fromJSON(needs.nix-matrix.outputs.matrix)}}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.3.1
       - uses: samueldr/lix-gha-installer-action@v2025-10-27
 
       - name: Set up /run for nix-darwin
