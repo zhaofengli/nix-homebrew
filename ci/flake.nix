@@ -67,8 +67,15 @@
           lib.listToAttrs
         ];
 
-      forAllSystems =
-        f: lib.genAttrs supportedSystems (system: f inputs.nixpkgs_unstable.legacyPackages.${system});
+      # Unstable doesn't cover every supported system anymore.
+      pkgsFor =
+        system:
+        if lib.elem system releases.unstable.systems then
+          inputs.nixpkgs_unstable.legacyPackages.${system}
+        else
+          inputs.nixpkgs_26_05.legacyPackages.${system};
+
+      forAllSystems = f: lib.genAttrs supportedSystems (system: f (pkgsFor system));
 
       makeCi =
         { self, brew-src }:
