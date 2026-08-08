@@ -23,6 +23,7 @@ jobs:
     needs: nix-matrix
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix: ${{fromJSON(needs.nix-matrix.outputs.matrix)}}
     steps:
       - uses: actions/checkout@v4.3.1
