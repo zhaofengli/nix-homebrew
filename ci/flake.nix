@@ -21,21 +21,24 @@
     let
       inherit (inputs.nixpkgs_unstable) lib;
 
-      supportedSystems = [
-        "x86_64-darwin"
-        "aarch64-darwin"
-      ];
-
       releases = {
         "unstable" = {
           nixpkgs = inputs.nixpkgs_unstable;
           nix-darwin = inputs.nix-darwin_unstable;
+          # Nixpkgs 26.11 dropped x86_64-darwin; evaluating it is a hard error.
+          systems = [ "aarch64-darwin" ];
         };
         "26.05" = {
           nixpkgs = inputs.nixpkgs_26_05;
           nix-darwin = inputs.nix-darwin_26_05;
+          systems = [
+            "x86_64-darwin"
+            "aarch64-darwin"
+          ];
         };
       };
+
+      supportedSystems = lib.unique (lib.concatMap (release: release.systems) (lib.attrValues releases));
 
       githubPlatforms = {
         "aarch64-darwin" = "macos-26";
@@ -94,7 +97,7 @@
               assembleTest {
                 inherit system release test;
               }
-            ) matrix
+            ) (lib.filterAttrs (name: setup: lib.elem system releases.${setup.release}.systems) matrix)
           );
           ciScripts = lib.mapAttrs (
             system: tests: lib.mapAttrs (name: test: test.config.system.build.ci-script) tests
