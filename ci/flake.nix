@@ -21,21 +21,24 @@
     let
       inherit (inputs.nixpkgs_unstable) lib;
 
-      supportedSystems = [
-        "x86_64-darwin"
-        "aarch64-darwin"
-      ];
-
       releases = {
         "unstable" = {
           nixpkgs = inputs.nixpkgs_unstable;
           nix-darwin = inputs.nix-darwin_unstable;
+          # Nixpkgs 26.11 dropped x86_64-darwin; evaluating it is a hard error.
+          systems = [ "aarch64-darwin" ];
         };
         "26.05" = {
           nixpkgs = inputs.nixpkgs_26_05;
           nix-darwin = inputs.nix-darwin_26_05;
+          systems = [
+            "x86_64-darwin"
+            "aarch64-darwin"
+          ];
         };
       };
+
+      supportedSystems = lib.unique (lib.concatMap (release: release.systems) (lib.attrValues releases));
 
       githubPlatforms = {
         "aarch64-darwin" = "macos-26";
@@ -64,8 +67,15 @@
           lib.listToAttrs
         ];
 
-      forAllSystems =
-        f: lib.genAttrs supportedSystems (system: f inputs.nixpkgs_unstable.legacyPackages.${system});
+      # Unstable doesn't cover every supported system anymore.
+      pkgsFor =
+        system:
+        if lib.elem system releases.unstable.systems then
+          inputs.nixpkgs_unstable.legacyPackages.${system}
+        else
+          inputs.nixpkgs_26_05.legacyPackages.${system};
+
+      forAllSystems = f: lib.genAttrs supportedSystems (system: f (pkgsFor system));
 
       makeCi =
         { self, brew-src }:
@@ -94,7 +104,7 @@
               assembleTest {
                 inherit system release test;
               }
-            ) matrix
+            ) (lib.filterAttrs (name: setup: lib.elem system releases.${setup.release}.systems) matrix)
           );
           ciScripts = lib.mapAttrs (
             system: tests: lib.mapAttrs (name: test: test.config.system.build.ci-script) tests
