@@ -13,12 +13,9 @@ BIN_BREW_EXPORTED_VARS=(
   HOMEBREW_REPOSITORY
   HOMEBREW_LIBRARY
   HOMEBREW_USER_CONFIG_HOME
-  HOMEBREW_ORIGINAL_BREW_FILE
 )
-BIN_BREW_EXPORTED_VARS_REGEX="^($(
-  IFS='|'
-  echo "${BIN_BREW_EXPORTED_VARS[*]}"
-))(=|$)"
+printf -v BIN_BREW_EXPORTED_VARS_REGEX '%s|' "${BIN_BREW_EXPORTED_VARS[@]}"
+BIN_BREW_EXPORTED_VARS_REGEX="^(${BIN_BREW_EXPORTED_VARS_REGEX%|})(=|$)"
 
 # Load Homebrew's variable configuration files from disk.
 export_homebrew_env_file() {
@@ -44,9 +41,6 @@ export_homebrew_env_file() {
     export "${line?}"
   done <"${env_file}"
 }
-
-# We only want to be able to set this in `brew.env` files.
-unset HOMEBREW_DISABLE_NO_FORCE_BREW_WRAPPER
 
 # First, load the system-wide configuration.
 export_homebrew_env_file "/etc/homebrew/brew.env"
@@ -79,11 +73,20 @@ then
   export_homebrew_env_file "/etc/homebrew/brew.env"
 fi
 
-# Use HOMEBREW_FORCE_BREW_WRAPPER if set.
-export HOMEBREW_ORIGINAL_BREW_FILE="${HOMEBREW_BREW_FILE}"
-if [[ -n "${HOMEBREW_FORCE_BREW_WRAPPER:-}" ]]
+# Record which HOMEBREW_* variables the user set (including via brew.env
+# above) before brew exports more itself, e.g. HOMEBREW_EDITOR from
+# EDITOR/VISUAL below or HOMEBREW_UPDATE_TO_TAG in cmd/update.sh, so
+# analytics only samples user configuration. Sub-brews inherit the list.
+# The matching Ruby is Homebrew::EnvConfig.user_set_variable? in
+# Library/Homebrew/env_config.rb.
+if [[ -z "${HOMEBREW_USER_SET_VARS+set}" ]]
 then
-  HOMEBREW_BREW_FILE="${HOMEBREW_FORCE_BREW_WRAPPER}"
+  for VAR in "${!HOMEBREW_@}"
+  do
+    HOMEBREW_USER_SET_VARS="${HOMEBREW_USER_SET_VARS:-} ${VAR}"
+  done
+  export HOMEBREW_USER_SET_VARS="${HOMEBREW_USER_SET_VARS:-}"
+  unset VAR
 fi
 
 # Copy and export all HOMEBREW_* variables previously mentioned in
@@ -91,8 +94,6 @@ fi
 
 # These variables are allowed to be set by the user as, e.g., `HOMEBREW_BROWSER`.
 MANPAGE_VARS=(
-  BAT_CONFIG_PATH
-  BAT_THEME
   BROWSER
   BUNDLE_USER_CACHE
   DISPLAY
@@ -120,6 +121,8 @@ USED_BY_HOMEBREW_VARS=(
   GOBIN
   GOPATH
   LANG
+  LC_ALL
+  LC_CTYPE
   NODENV_ROOT
   PATH
   PYENV_ROOT
@@ -192,6 +195,7 @@ PATH="@runtimePath@:/usr/bin:/bin:/usr/sbin:/sbin"
 
 FILTERED_ENV=()
 ENV_VAR_NAMES=(
+  BAT_CONFIG_PATH BAT_THEME
   HOME SHELL PATH TERM TERMINFO TERMINFO_DIRS COLUMNS DISPLAY LOGNAME USER CI SSH_AUTH_SOCK SUDO_ASKPASS
   http_proxy https_proxy ftp_proxy no_proxy all_proxy HTTPS_PROXY FTP_PROXY ALL_PROXY
 )
