@@ -37,9 +37,40 @@ let
   brew = if cfg.patchBrew then patchBrew cfg.package else cfg.package;
   ruby = pkgs.ruby_4_0;
 
+  # nix-darwin concatenates `security.pki.certificateFiles` and
+  # `security.pki.certificates` into /etc/ssl/certs/ca-certificates.crt and
+  # points NIX_SSL_CERT_FILE at it. That file, not a bare `pkgs.cacert`, is the
+  # system trust store: it is the only one a user can extend with a private
+  # root or trim with `security.pki.caCertificateBlacklist`. Reading it at
+  # runtime also means adding a root takes effect on the next activation
+  # without rebuilding git. `system.activationScripts.etc` runs before
+  # `.homebrew`, so it is in place by the time `brew bundle` needs it.
+  caBundle =
+    if config.security.pki.installCACerts then
+      "/etc/ssl/certs/ca-certificates.crt"
+    else
+      "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+
+  # `bin/brew` re-executes itself through `env -i` with a fixed allowlist that
+  # does not include SSL_CERT_FILE or NIX_SSL_CERT_FILE, so a plain
+  # `pkgs.gitMinimal` is left with no CA bundle to verify against and every
+  # HTTPS operation Homebrew drives through git fails with "unable to get local
+  # issuer certificate" -- `brew tap`, and `brew update` on a mutable tap.
+  # Hand git its trust store directly rather than relying on an environment we
+  # know is stripped.
+  gitWithCerts = pkgs.symlinkJoin {
+    name = "${pkgs.gitMinimal.name}-with-cacert";
+    paths = [ pkgs.gitMinimal ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/git \
+        --set-default SSL_CERT_FILE "${caBundle}"
+    '';
+  };
+
   # Sadly, we cannot replace coreutils since the GNU implementations
   # behave differently.
-  runtimePath = lib.makeBinPath [ pkgs.gitMinimal ];
+  runtimePath = lib.makeBinPath [ gitWithCerts ];
 
   prefixType = types.submodule ({ name, ... }: {
     options = {
