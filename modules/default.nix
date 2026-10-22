@@ -114,6 +114,14 @@ let
   makeBinBrew = prefix: let
     template = pkgs.writeText "brew.in" (''
       #!/bin/bash
+
+      # Take the HOMEBREW_PATH if we are running brew within brew, otherwise we would lose the original path.
+      # This must happen before HOMEBREW_BREW_FILE is exported below.
+      if [[ -n "''${HOMEBREW_BREW_FILE:-}" && -n "''${HOMEBREW_PATH:-}" ]]
+      then
+        PATH="''${HOMEBREW_PATH}"
+      fi
+
       export HOMEBREW_PREFIX="@prefix@"
       export HOMEBREW_LIBRARY="@library@"
       export HOMEBREW_REPOSITORY="$HOMEBREW_LIBRARY/.homebrew-is-managed-by-nix"
