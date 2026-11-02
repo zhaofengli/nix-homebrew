@@ -269,7 +269,14 @@ let
 
   setupTaps = taps:
     # Mixed taps
-    if cfg.mutableTaps then lib.concatMapStrings (path: let
+    if cfg.mutableTaps then ''
+      # ensure non-symlink tap directory is writeable
+      if [[ ! -L "$HOMEBREW_LIBRARY/Taps" ]]; then
+        "''${MKDIR[@]}" "$HOMEBREW_LIBRARY/Taps"
+        "''${CHOWN[@]}" "$NIX_HOMEBREW_UID:$NIX_HOMEBREW_GID" "$HOMEBREW_LIBRARY/Taps"
+        "''${CHMOD[@]}" "ug=rwx" "$HOMEBREW_LIBRARY/Taps"
+      fi
+    '' + lib.concatMapStrings (path: let
       # Each path must be in the form of `user/repo`
       namespace = builtins.head (lib.splitString "/" path);
       target = taps.${path};
@@ -291,9 +298,9 @@ let
         exit 1
       fi
       "''${MKDIR[@]}" "${namespaceDir}"
-      "''${CHOWN[@]}" "$NIX_HOMEBREW_UID:$NIX_HOMEBREW_GID" "${namespaceDir}"
-      "''${CHMOD[@]}" "ug=rwx" "${namespaceDir}"
       /usr/bin/rsync -rL --delete "${target}/" "${tapDir}"
+      "''${CHOWN[@]}" "-R" "$NIX_HOMEBREW_UID:$NIX_HOMEBREW_GID" "${namespaceDir}"
+      "''${CHMOD[@]}" "-R" "ug=rwX" "${namespaceDir}"
     '') (builtins.attrNames taps)
 
     # Fully declarative taps
