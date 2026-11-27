@@ -39,7 +39,8 @@ let
 
   # Sadly, we cannot replace coreutils since the GNU implementations
   # behave differently.
-  runtimePath = lib.makeBinPath [ pkgs.gitMinimal ];
+  runtimeBins = lib.optional (!cfg.useSystemGit) pkgs.gitMinimal;
+  runtimePath = if runtimeBins == [] then "/usr/bin" else lib.makeBinPath runtimeBins;
 
   prefixType = types.submodule ({ name, ... }: {
     options = {
@@ -534,6 +535,13 @@ in {
         '';
         type = types.bool;
         default = true;
+      };
+      useSystemGit = lib.mkOption {
+        description = ''
+          Whether to use the system-provided `git` instead of `pkgs.gitMinimal`.
+        '';
+        type = types.bool;
+        default = false;
       };
 
       # Shell integrations
