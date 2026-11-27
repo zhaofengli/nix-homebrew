@@ -178,6 +178,17 @@ in
 
         >&2 echo "Checking that we can still use the tap we added imperatively"
         brew install koekeishiya/formulae/yabai
+
+        # Cloned by the git *we* put on Homebrew's PATH, after activation.
+        # `bin/brew` scrubs SSL_CERT_FILE and NIX_SSL_CERT_FILE from the
+        # environment, so that git has to carry its own CA bundle or the clone
+        # cannot verify GitHub's certificate. The tap above does not cover
+        # this: preScript runs before activation, through the runner's own
+        # Homebrew. Cloning the same remote under a fresh tap name leaves the
+        # assertions above intact and cannot pass vacuously.
+        >&2 echo "Checking that brew can clone a tap over HTTPS"
+        brew tap nix-homebrew/https-test https://github.com/koekeishiya/homebrew-formulae
+        test -d "$(brew --repository nix-homebrew/https-test)/.git"
       ''
       + lib.optionalString config.nix-homebrew.enableRosetta ''
         >&2 echo "Checking we can execute the Intel brew with arch -x86_64"
